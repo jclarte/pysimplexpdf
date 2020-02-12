@@ -17,8 +17,6 @@ from pylatex.basic import NewLine
 from constraint import Constraint
 from linear_program import LinProg
 
-# VARIABLE_PATTERN = re.compile(r"""[a-zA-Z]+_?[0-9]*""")
-# # COEFF_PATTERN = re.compile()
 
 def load_from_json(filename):
     """
@@ -140,39 +138,48 @@ def multi_solve(pl_list, doc=None):
 
     doc.generate_pdf('simplex_example', clean_tex=False)
 
+def load_template(filename):
 
+    with open(filename, 'r') as f:
+        data = json.load(f)
+    return data
 
-def lin_prog_solve(lin_prog, doc=None, generate_pdf=False):
+# TODO: déplacer ça et gérer autrement les valeurs par défaut
+DEFAULT_TEMPLATE = load_template("config.json")
+
+def lin_prog_solve(lin_prog, doc=None, generate_pdf=False, template=DEFAULT_TEMPLATE):
 
     if doc is None:
         doc = Document(geometry_options={"margin" : "1.5cm"})
 
-    with doc.create(Section("Résolution de programme linéaire")):
+    with doc.create(Section(lin_prog.title)):
 
-        with doc.create(Subsection("Problème initial")):
+        # énoncé initial
+        with doc.create(Subsection(template["setup"])):
 
             latex = lin_prog.to_latex()
             doc.append(NoEscape(latex))
 
-        with doc.create(Subsection("Forme canonique")):
-            lin_prog.canonical_form()
-            latex = lin_prog.to_latex()
+        # passage sous forme canonique
+        with doc.create(Subsection(template["canonize"]["title"])):
+            lin_prog.canonical_form(to_max=template["canonize"]["to_max"], comment=template["canonize"]["description"])
+            latex = lin_prog.to_latex(comments=True)
             doc.append(NoEscape(latex))
 
-        with doc.create(Subsection("Forme standard")):
-            lin_prog.pre_standard_form()
-            latex = lin_prog.to_latex()
+        with doc.create(Subsection(template["add_deviation"]["title"])):
+            lin_prog.pre_standard_form(comment=template["add_deviation"]["description"])
+            latex = lin_prog.to_latex(comments=True)
             doc.append(NoEscape(latex))
 
-
-            lin_prog.standard_form()
-            latex = lin_prog.to_latex()
+        with doc.create(Subsection(template["standard_form"]["title"])):
+            lin_prog.standard_form(comment=template["standard_form"]["description"])
+            latex = lin_prog.to_latex(comments=True)
             doc.append(NoEscape(latex))
 
-        with doc.create(Subsection("Solution de base")):
+        with doc.create(Subsection(template["initial_base"]["title"])):
 
-            lin_prog.set_base()
-            doc.append(NoEscape("\nLa solution de base est la suivante : \n\n" + lin_prog.view_solution()))
+            lin_prog.set_base(comment=template["initial_base"]["description"])
+            doc.append(NoEscape(lin_prog.view_solution()))
 
         in_var = lin_prog.get_incoming_variable()
         nb_iter = 0
@@ -180,10 +187,9 @@ def lin_prog_solve(lin_prog, doc=None, generate_pdf=False):
         while in_var is not None:
             nb_iter += 1
 
-            with doc.create(Subsection(f"{nb_iter}e itération du simplexe")):
+            with doc.create(Subsection(template["iteration"]["title"].format(i=nb_iter))):
 
-                doc.append(NoEscape("\nLa variable qui entre dans la base est : $" + sympy.latex(in_var) + "$"))
-                doc.append(NoEscape("\nLes contraintes sur la variable sont :"))
+                doc.append(NoEscape(template["in_var"].format(var=sympy.latex(in_var))))
 
                 constraints, std_constraints, pivot_idx = lin_prog.get_pivot_line(in_var)
 
@@ -200,20 +206,19 @@ def lin_prog_solve(lin_prog, doc=None, generate_pdf=False):
                     doc.append(NoEscape(constraint.latex() + r""" & \rightarrow & """ + std_constraint.latex() + r"""\\"""))
                 doc.append(NoEscape(suffix))
 
-                doc.append(NoEscape("\nLa contrainte la plus forte est $" + std_constraints[pivot_idx].latex() + "$"))
-                doc.append(NoEscape("\nQui correspond à la ligne $" + lin_prog.constraints[pivot_idx].latex() + "$"))
+                doc.append(NoEscape(template["out_var"].format(pivot=std_constraints[pivot_idx].latex(), pivot_line=lin_prog.constraints[pivot_idx].latex())))
 
                 lin_prog.set_in_base(in_var, pivot_idx)
-                latex = lin_prog.to_latex()
+                latex = lin_prog.to_latex(comments=True)
                 doc.append(NoEscape(latex))
 
-                lin_prog.apply_subs()
-                latex = lin_prog.to_latex()
+                lin_prog.apply_subs(comment=template["subs"])
+                latex = lin_prog.to_latex(comments=True)
                 doc.append(NoEscape(latex))
 
                 in_var = lin_prog.get_incoming_variable()
 
-        doc.append(NoEscape("\nLe problème est résolu."))
+        doc.append(NoEscape(template["end"]))
     if generate_pdf:
         doc.generate_pdf('simplex_example', clean_tex=False)
     else:

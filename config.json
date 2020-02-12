@@ -1,9 +1,28 @@
 {
   "setup" : "Forme initiale du problème.",
-  "canonize" : "",
-  "add_deviation" : "",
-  "standard_form" : "",
-  "iteration" : "",
-  "in_var" : "",
-  "out_var" : ""
+  "canonize" : {
+      "title" : "Forme canonique du problème",
+      "to_max" : "Minimiser une fonction, c'est maximiser son inverse : on multiplie $z$ par -1.\n",
+      "description" : "On transforme les $\\geq$ en $\\leq$ en multipliant chaque membre par -1.\n"
+    },
+  "add_deviation" : {
+    "title" : "Introduction des variables d'écart",
+    "description" : "On introduit une variable d'écart pour chaque inéquation, afin de transformer les inéquations en équations.\n"
+    },
+  "standard_form" : {
+    "title" : "Forme standard du problème",
+    "description" : "On passe les variables d'écart sur la partie gauche : ce sont les variables de base.\nLes autres membres sont sur la partie droite : ce sont les scalaires et les variables hors base.\n"
+    },
+  "initial_base" : {
+    "title" : "Solution de base",
+    "description" : "On initialise la solution de base, c'est à dire avec toutes les variables de décision égales à 0. On suppose que c'est le cas dans tous les problèmes traotés ici. Il existe une méthode (par le traitement d'un problème auxilliaire) pour disposer d'une solution initiale.\n"
+    },
+  "iteration" : {
+    "title" : "{i}e itération de l'algorithme",
+    "description" : "On cherche la variable dont le coefficient dans $z$ est le plus grand et positif.\n"
+  },
+  "in_var" : "La variable qui entre dans la base est ${var}$.\nLes contraintes sur la variable sont :\n",
+  "out_var" : "La contrainte la plus forte est ${pivot}$, qui correspond à la ligne ${pivot_line}$",
+  "subs" : "\nOn développe et on réduit.\n",
+  "end" : "Tous les coefficients des variables dans $z$ sont négatifs : l'algorithme est terminé. Le problème est résolu.\n"
 }

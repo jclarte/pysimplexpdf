@@ -41,7 +41,7 @@ class LinProg:
         self.comments = "Forme initiale du problème."
         self.standard = False
 
-    def to_latex(self):
+    def to_latex(self, comments=False):
 
         COMP = {
             'LEQ' : r"""\leq""",
@@ -103,9 +103,15 @@ class LinProg:
         lines.append(suffix2)
         if self.current_solution:
             lines.append(self.view_solution())
-        return "\n".join([self.comments] + lines)
+        if comments:
+            return "\n".join([self.comments] + lines)
+        else:
+            return "\n".join(lines)
 
-    def canonical_form(self):
+    def canonical_form(self,
+                       to_max="Minimiser une fonction, c'est maximiser son inverse : on multiplie $z$ par -1.\n",
+                       comment="On transforme les $\\geq$ en $\\leq$ en multipliant chaque membre par -1.\n"
+                       ):
         """
         transform into canonical form
         """
@@ -113,7 +119,7 @@ class LinProg:
         if self.optimizer == "min":
             self.utility *= -1
             self.optimizer = "max"
-            self.comments = "Minimiser une fonction, c'est maximiser son inverse : on multiplie $z$ par -1.\n"
+            self.comments = to_max
         else:
             self.comments = ""
 
@@ -121,7 +127,7 @@ class LinProg:
             # pass all sclars to r_part and all varibales to l_part
             constraint.canonize()
 
-        self.comments += "On transforme les $\\geq$ en $\\leq$ en multipliant chaque membre par -1.\n"
+        self.comments += comment
 
 
     def get_new_var(self):
@@ -131,7 +137,7 @@ class LinProg:
             else:
                 return sympy.Symbol(f"x_{idx}")
 
-    def pre_standard_form(self):
+    def pre_standard_form(self, comment="On introduit les variables d'écart."):
 
         for constraint in filter(lambda c:c.comp == "LEQ", self.constraints):
             new_var = self.get_new_var()
@@ -146,17 +152,17 @@ class LinProg:
 
         self.utility_constraint.set_variables(self.variables)
 
-        self.comments = "On introduit les variables d'écart."
+        self.comments = comment
 
-    def standard_form(self):
+    def standard_form(self, comment="On passe les variables d'écart sur la partie gauche : ce sont les variables de base.\nLes autres membres sont sur la partie droite : ce sont les scalaires et les variables hors base."):
 
         for constraint in self.constraints:
             constraint.in_base()
 
         self.standard = True
-        self.comments = "On passe les variables d'écart sur la partie gauche : ce sont les variables de base.\nLes autres membres sont sur la partie droite : ce sont les scalaires et les variables hors bases."
+        self.comments = comment
 
-    def set_base(self):
+    def set_base(self, comment="On initialise la solution de base."):
 
         base_var = [constraint.deviation_variable for constraint in self.constraints]
         out_var = [var for var in filter(lambda v:v not in base_var, self.variables)]
@@ -172,7 +178,7 @@ class LinProg:
         self.out = out_var
         self.current_solution = solution
 
-        self.comments = "On initialise la solution de base."
+        self.comments = comment
 
     def update_solution(self):
         self.current_solution = {var:0 for var in self.out}
@@ -182,7 +188,7 @@ class LinProg:
             self.current_solution[constraint.l_part] = constraint.get_scalar()[1]
 
     def view_solution(self):
-        return " ; ".join([f"${var} = {self.current_solution[var]}$" for var in self.variables])
+        return " ; ".join([f"${var} = {self.current_solution[var]}$" for var in self.variables]) + "\n"
 
     def get_incoming_variable(self):
         """
@@ -225,7 +231,7 @@ class LinProg:
 
         return var_constraints, std_var_constraints, best_index
 
-    def set_in_base(self, variable, idx):
+    def set_in_base(self, variable, idx, comment="\nOn fait entrer la variable ${variable}$ dans la base."):
         out_var = self.constraints[idx].l_part
         self.constraints[idx].in_base(variable)
         for idx_constraint, constraint in enumerate(self.constraints):
@@ -236,7 +242,7 @@ class LinProg:
         self.utility_constraint.set_variables(self.variables)
         self.utility_constraint.substitutions[variable] = self.constraints[idx].r_part
         self.utility = self.utility_constraint.r_part
-        self.comments = f"\nOn fait entrer la variable ${variable}$ dans la base."
+        self.comments = comment.format(variable=variable, idx=idx)
         self.out.remove(variable)
         self.out.append(out_var)
         self.base.append(variable)
@@ -244,11 +250,11 @@ class LinProg:
         self.update_solution()
 
 
-    def apply_subs(self):
+    def apply_subs(self, comment="\nOn développe et on réduit."):
         for constraint in self.constraints:
             constraint.apply_subs()
         self.utility_constraint.apply_subs()
         # print("z=", self.utility_constraint.r_part)
         self.utility = self.utility_constraint.r_part
         self.update_solution()
-        self.comments = f"\nOn développe et on réduit."
+        self.comments = comment
