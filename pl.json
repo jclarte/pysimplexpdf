@@ -1,0 +1,15 @@
+[
+  {
+    "title" : "Exemple d'application du simplexe",
+    "description" : "Un exemple simple pour illustrer l'algorithme",
+    "variables" : ["x_1", "x_2"],
+    "utility" : "1000*x_1+1200*x_2",
+    "optimizer" : "max",
+    "constraints" : [
+      "10*x_1 + 5*x_2 <= 200",
+      "2*x_1 + 3*x_2 <= 60",
+      "x_1 <= 34",
+      "x_2 <= 14"
+    ]
+  }
+]

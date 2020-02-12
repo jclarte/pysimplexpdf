@@ -6,6 +6,7 @@ petit script d'implémentation de la méthode du simplexe avec visualisation
 import re
 from itertools import chain, count
 from math import inf
+import json
 
 import sympy
 
@@ -18,6 +19,61 @@ from linear_program import LinProg
 
 # VARIABLE_PATTERN = re.compile(r"""[a-zA-Z]+_?[0-9]*""")
 # # COEFF_PATTERN = re.compile()
+
+def load_from_json(filename):
+    """
+    load lienar programs from json fils. Simple is json.pl
+    """
+    all_pl = []
+    with open(filename, 'r') as f:
+        pl_data = json.load(f)
+
+    for pl in pl_data:
+        variables = [sympy.Symbol(v) for v in pl["variables"]]
+        utility = sympy.sympify(pl["utility"])
+
+        constraints = []
+        for c in pl["constraints"]:
+            if "<=" in c:
+                l_part, r_part = c.split("<=")
+                comp = "LEQ"
+            elif ">=" in c:
+                l_part, r_part = c.split(">=")
+                comp = "GEQ"
+            else:
+                l_part, r_part = c.split("=")
+                comp = "EQ"
+            l_part = sympy.sympify(l_part.strip())
+            r_part = sympy.sympify(r_part.strip())
+            constraint_variables = set(filter(lambda x:isinstance(x, sympy.Symbol), chain(l_part.atoms(), r_part.atoms())))
+            if constraint_variables.issubset(set(variables)):
+                constraints.append((l_part, comp, r_part))
+            else:
+                raise SyntaxError(f"undeclared variable found while parsing constraint on line {line}")
+
+        optimizer = pl["optimizer"]
+        title = pl["title"],
+        description = pl["description"]
+
+        from pprint import pprint
+        pprint({
+            "variables" : variables,
+            "utility" : utility,
+            "optimizer" : optimizer,
+            "constraints" : constraints,
+            })
+
+        new_prog = LinProg()
+        new_prog.from_dict({
+            "variables" : variables,
+            "utility" : utility,
+            "optimizer" : optimizer,
+            "constraints" : constraints,
+            })
+        all_pl.append(new_prog)
+
+    return all_pl
+
 
 def parse_linear_program(multiline_string):
 
@@ -75,42 +131,50 @@ def parse_linear_program(multiline_string):
 
 
 
+def multi_solve(pl_list, doc=None):
+    if doc is None:
+        doc = Document(geometry_options={"margin" : "1.5cm"})
+
+    for pl in pl_list:
+        lin_prog_solve(pl, doc=doc)
+
+    doc.generate_pdf('simplex_example', clean_tex=False)
 
 
-def lin_prog_solve(lin_prog):
 
-    doc = Document(geometry_options={"margin" : "1.5cm"})
-    parsed_pl = parse_linear_program(lin_prog)
+def lin_prog_solve(lin_prog, doc=None, generate_pdf=False):
+
+    if doc is None:
+        doc = Document(geometry_options={"margin" : "1.5cm"})
 
     with doc.create(Section("Résolution de programme linéaire")):
 
         with doc.create(Subsection("Problème initial")):
-            pl = LinProg()
-            pl.from_dict(parsed_pl)
-            latex = pl.to_latex()
+
+            latex = lin_prog.to_latex()
             doc.append(NoEscape(latex))
 
         with doc.create(Subsection("Forme canonique")):
-            pl.canonical_form()
-            latex = pl.to_latex()
+            lin_prog.canonical_form()
+            latex = lin_prog.to_latex()
             doc.append(NoEscape(latex))
 
         with doc.create(Subsection("Forme standard")):
-            pl.pre_standard_form()
-            latex = pl.to_latex()
+            lin_prog.pre_standard_form()
+            latex = lin_prog.to_latex()
             doc.append(NoEscape(latex))
 
 
-            pl.standard_form()
-            latex = pl.to_latex()
+            lin_prog.standard_form()
+            latex = lin_prog.to_latex()
             doc.append(NoEscape(latex))
 
         with doc.create(Subsection("Solution de base")):
 
-            pl.set_base()
-            doc.append(NoEscape("\nLa solution de base est la suivante : \n\n" + pl.view_solution()))
+            lin_prog.set_base()
+            doc.append(NoEscape("\nLa solution de base est la suivante : \n\n" + lin_prog.view_solution()))
 
-        in_var = pl.get_incoming_variable()
+        in_var = lin_prog.get_incoming_variable()
         nb_iter = 0
 
         while in_var is not None:
@@ -121,7 +185,7 @@ def lin_prog_solve(lin_prog):
                 doc.append(NoEscape("\nLa variable qui entre dans la base est : $" + sympy.latex(in_var) + "$"))
                 doc.append(NoEscape("\nLes contraintes sur la variable sont :"))
 
-                constraints, std_constraints, pivot_idx = pl.get_pivot_line(in_var)
+                constraints, std_constraints, pivot_idx = lin_prog.get_pivot_line(in_var)
 
                 prefix = r"""
                 \[
@@ -137,41 +201,28 @@ def lin_prog_solve(lin_prog):
                 doc.append(NoEscape(suffix))
 
                 doc.append(NoEscape("\nLa contrainte la plus forte est $" + std_constraints[pivot_idx].latex() + "$"))
-                doc.append(NoEscape("\nQui correspond à la ligne $" + pl.constraints[pivot_idx].latex() + "$"))
+                doc.append(NoEscape("\nQui correspond à la ligne $" + lin_prog.constraints[pivot_idx].latex() + "$"))
 
-                pl.set_in_base(in_var, pivot_idx)
-                latex = pl.to_latex()
+                lin_prog.set_in_base(in_var, pivot_idx)
+                latex = lin_prog.to_latex()
                 doc.append(NoEscape(latex))
 
-                pl.apply_subs()
-                latex = pl.to_latex()
+                lin_prog.apply_subs()
+                latex = lin_prog.to_latex()
                 doc.append(NoEscape(latex))
 
-                in_var = pl.get_incoming_variable()
+                in_var = lin_prog.get_incoming_variable()
 
         doc.append(NoEscape("\nLe problème est résolu."))
-    doc.generate_pdf('simplex_example', clean_tex=False)
-
+    if generate_pdf:
+        doc.generate_pdf('simplex_example', clean_tex=False)
+    else:
+        return doc
 
 if __name__ == '__main__':
 
-    # PL = """
-    # var: x_1, x_2
-    # max z = 1000*x_1 + 1200*x_2
-    # sc
-    # 10*x_1 + 5*x_2 <= 200
-    # 2*x_1 + 3*x_2 <=60
-    # x_1 <= 34
-    # x_2 <= 14
-    # """
+    import sys
 
-    PL = """
-    var: x_1, x_2
-    max z = x_1 + 2*x_2
-    sc
-    x_1 <= 10
-    x_2 <= 10
-    x_1 + x_2 <= 15
-    """
+    data = load_from_json(sys.argv[1])
 
-    lin_prog_solve(PL)
+    multi_solve(data)

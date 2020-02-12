@@ -15,6 +15,9 @@ class LinProg:
     UTILITY = une liste de coefficients de la fonctions utilité
     """
 
+    title = ""
+    description = ""
+
     utility = None
     variables = []
     optimizer = None
@@ -26,6 +29,8 @@ class LinProg:
     out = None
 
     def from_dict(self, dictionnary):
+        self.title = dictionnary.get("title", "")
+        self.description = dictionnary.get("description", "")
         self.utility = dictionnary["utility"]
         self.utility_constraint = Constraint("z", "EQ", self.utility)
         self.variables = dictionnary["variables"]
