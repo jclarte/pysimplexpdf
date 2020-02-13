@@ -1,0 +1,47 @@
+[
+  {
+    "title" : "Exercice 1",
+    "description" : "Déterminer pour quelles valeurs de $x_1$ et $x_2$ la fonction $f(x_1, x_2)$ est maximale tout en satisfaisant les contraintes indiquées.",
+    "variables" : ["x_1", "x_2"],
+    "utility" : "x_1+2*x_2",
+    "optimizer" : "max",
+    "constraints" : [
+      "x_1 <= 10",
+      "x_2 <= 10",
+      "x_1 + x_2 <= 15"
+    ]
+  },
+  {
+    "title" : "Exercice 2",
+    "description" : "Au quatorzième siècle, un Touareg compte gagner un peu d’or en investissant dans des dromadaires qu’il sait pouvoir revendre à Tombouctou. Comme sa route pas se par Taoudeni, il pense aussi y acheter du sel pour tirer d’avantage de bénéfice de son voyage. Il sait qu’il pourra obtenir au terme de son voyage 10po (pièce d’or) de bénéfice par dromadaire, et 1 pa (pièce d’argent, 1 po = 10 pa) de bénéfice par kg de sel. Avant toute chose il faut déjà qu’il achète ces dromadaires et ce sel. Chaque dromadaire lui coûte 10 po, et chaque kg de sel 0,2 pa. Il peut investir 65 po. Sachant qu’un dromadaire peut transporter jusqu’à 150 kg de sel, comment ce Touareg doit investir son pécule pour tirer le bénéfice maximal de son investissement ? \n\nOn modélise le problème avec $x_1$ le nombre de dromadaires et $x_2$ le nombre de cinquantaines de kg de sel.",
+    "variables" : ["x_1", "x_2"],
+    "utility" : "x_1+2*x_2",
+    "optimizer" : "max",
+    "constraints" : [
+      "100*x_1 + x_2 <= 650",
+      "50*x_2 <= 150*x_1"
+    ]
+  },
+  {
+    "title" : "Exercice 5, premier programme",
+    "variables" : ["x_1", "x_2"],
+    "utility" : "x_1+2*x_2",
+    "optimizer" : "max",
+    "constraints" : [
+      "x_1 + 3*x_2 <= 21",
+      "-x_1 + 3*x_2 <= 18",
+      "x_1 - x_2 <= 5"
+    ]
+  },
+  {
+    "title" : "Exercice 5, deuxième programme",
+    "variables" : ["x_1", "x_2", "x_3"],
+    "utility" : "-10*x_1 - 12*x_2 - 12*x_3",
+    "optimizer" : "min",
+    "constraints" : [
+      "x_1 + 2*x_2 + 2*x_3 <= 20",
+      "2*x_1 + x_2 + 2*x_3 <= 20",
+      "2*x_1 + 2*x_2 + x_3 <= 20"
+    ]
+  }
+]

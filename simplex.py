@@ -50,11 +50,15 @@ def load_from_json(filename):
                 raise SyntaxError(f"undeclared variable found while parsing constraint on line {line}")
 
         optimizer = pl["optimizer"]
-        title = pl["title"],
-        description = pl["description"]
+        title = pl.get("title", "")
+        description = pl.get("description", "")
+
+        print(optimizer)
 
         new_prog = LinProg()
         new_prog.from_dict({
+            "title" : title,
+            "description": description,
             "variables" : variables,
             "utility" : utility,
             "optimizer" : optimizer,
@@ -142,7 +146,11 @@ def lin_prog_solve(lin_prog, doc=None, generate_pdf=False, template=DEFAULT_TEMP
     if doc is None:
         doc = Document(geometry_options={"margin" : "1.5cm"})
 
+    print(lin_prog.title)
+
     with doc.create(Section(lin_prog.title)):
+
+        doc.append(NoEscape(lin_prog.description))
 
         # énoncé initial
         with doc.create(Subsection(template["setup"])):
