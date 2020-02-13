@@ -33,14 +33,11 @@ Les programmes linéaires à résoudre doivent être au format json : une liste 
 
 Un exemple de fichier est contenu dans `pl.json`.
 
-`python simplex.py pl.json` -> génère un pdf `simplex_example.pdf`.
+`python pysimplexpdf.py --infile pl.json --outfile pl_example.pdf` -> génère un pdf `pl_example.pdf`.
 
 ## TODO
 
 Gérer des entrées / sorties différentes :
 
-1. configurer le nom de sortie
-2. customiser le texte depuis un json
-3. mettre du argparse dans l'entrée
-4. gérer les cas sans solution de base (pbb auxilliare)
-5. faire une version pour le simplexe tableau.
+1. gérer les cas sans solution de base (pbb auxilliare)
+2. faire une version pour le simplexe tableau.

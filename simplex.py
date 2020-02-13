@@ -53,14 +53,6 @@ def load_from_json(filename):
         title = pl["title"],
         description = pl["description"]
 
-        from pprint import pprint
-        pprint({
-            "variables" : variables,
-            "utility" : utility,
-            "optimizer" : optimizer,
-            "constraints" : constraints,
-            })
-
         new_prog = LinProg()
         new_prog.from_dict({
             "variables" : variables,
@@ -74,8 +66,6 @@ def load_from_json(filename):
 
 
 def parse_linear_program(multiline_string):
-
-    print(multiline_string)
 
     variables = []
     utility = None
@@ -129,14 +119,14 @@ def parse_linear_program(multiline_string):
 
 
 
-def multi_solve(pl_list, doc=None):
+def multi_solve(pl_list, doc=None, name="simplex_example"):
     if doc is None:
         doc = Document(geometry_options={"margin" : "1.5cm"})
 
     for pl in pl_list:
         lin_prog_solve(pl, doc=doc)
 
-    doc.generate_pdf('simplex_example', clean_tex=False)
+    doc.generate_pdf(name, clean_tex=False)
 
 def load_template(filename):
 
@@ -223,11 +213,3 @@ def lin_prog_solve(lin_prog, doc=None, generate_pdf=False, template=DEFAULT_TEMP
         doc.generate_pdf('simplex_example', clean_tex=False)
     else:
         return doc
-
-if __name__ == '__main__':
-
-    import sys
-
-    data = load_from_json(sys.argv[1])
-
-    multi_solve(data)
