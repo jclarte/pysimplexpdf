@@ -35,9 +35,13 @@ Un exemple de fichier est contenu dans `pl.json`.
 
 `python pysimplexpdf.py --infile pl.json --outfile pl_example.pdf` -> génère un pdf `pl_example.pdf`.
 
+## Templates
+
+Le fichier `config.json` contient lestemplates de texte à remplir dans les correction.
+
+[TODO] DOC
+
 ## TODO
 
-Gérer des entrées / sorties différentes :
-
-1. gérer les cas sans solution de base (pbb auxilliare)
+1. gérer les cas sans solution de base (pb auxilliare)
 2. faire une version pour le simplexe tableau.

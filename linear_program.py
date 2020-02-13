@@ -118,6 +118,7 @@ class LinProg:
 
         if self.optimizer == "min":
             self.utility *= -1
+            self.utility_constraint = Constraint("z", "EQ", self.utility)
             self.optimizer = "max"
             self.comments = to_max
         else:
@@ -213,9 +214,9 @@ class LinProg:
             var_constraint = constraint.var_constraint(variable)
             var_constraints.append(constraint.var_constraint(variable))
             var_constraint.canonize()
-            # print(var_constraint)
+
             coeff = var_constraint.get_coeff(variable)[0]
-            # print("coeff:", coeff)
+
             if coeff > 0:
                 var_constraint.l_part /= coeff
                 var_constraint.r_part /= coeff
@@ -254,7 +255,7 @@ class LinProg:
         for constraint in self.constraints:
             constraint.apply_subs()
         self.utility_constraint.apply_subs()
-        # print("z=", self.utility_constraint.r_part)
+
         self.utility = self.utility_constraint.r_part
         self.update_solution()
         self.comments = comment

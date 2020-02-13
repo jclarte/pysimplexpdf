@@ -61,7 +61,7 @@ class Constraint:
         coeff = l_coeff - r_coeff
 
         self.l_part, self.r_part = base_variable, (self.r_part - self.l_part + coeff*base_variable) / (coeff)
-        # print(str(self.l_part) + "=" + str(self.r_part))
+
 
     def var_constraint(self, out_variable):
         return Constraint(self.r_part.subs([(var, 0) for var in filter(lambda v:v!=out_variable, self.variables)]), "GEQ", 0)
